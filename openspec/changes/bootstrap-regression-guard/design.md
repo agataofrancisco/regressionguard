@@ -2,7 +2,7 @@
 
 ## Context
 
-O repositório está vazio. Motivação: ver `proposal.md`. Requisitos: ver `specs/`. O EvalSentinel vai crescer com mais 3 changes (arbitragem, forensics e promptops), por isso o núcleo (datasets, runs, avaliadores, armazenamento) tem de ser reutilizável. Pedagogicamente, este projecto ensina avaliação de sistemas não determinísticos e estatística aplicada.
+O repositório está vazio. Motivação: ver `proposal.md`. Requisitos: ver `specs/`. O núcleo (datasets, runs, avaliadores, comparação e gates) é também uma biblioteca usada pelo PromptOps, por isso tem de ter uma API pública pequena, estável e versionada. Pedagogicamente, este projecto ensina avaliação de sistemas não determinísticos e estatística aplicada.
 
 ## Goals / Non-Goals
 
@@ -17,11 +17,11 @@ O repositório está vazio. Motivação: ver `proposal.md`. Requisitos: ver `spe
 ## Decisions
 
 ### D1 — Pacote Python + CLI Typer
-`src/evalsentinel/{datasets,targets,evaluators,runner,store,compare,report,cli}`. O comando é `ai-eval`.
+`src/regressionguard/{datasets,targets,evaluators,runner,store,compare,report,cli}`. O comando é `ai-eval`.
 - *Alternativa:* promptfoo (Node/YAML). É óptimo para prompts, mas menos flexível para avaliadores de segurança/SQL e para a estatística emparelhada. Fica uma integração opcional de import.
 
 ### D2 — DuckDB para o histórico
-Um ficheiro local `evalsentinel.duckdb` com as tabelas `runs`, `case_results` e `evaluator_results`. Permite análises SQL rápidas e não precisa de servidor. Os JSON das runs também ficam em `reports/` para auditoria.
+Um ficheiro local `regressionguard.duckdb` com as tabelas `runs`, `case_results` e `evaluator_results`. Permite análises SQL rápidas e não precisa de servidor. Os JSON das runs também ficam em `reports/` para auditoria.
 - *Alternativa:* Postgres, para o painel multiutilizador futuro. A camada `store` é uma interface para permitir a troca.
 
 ### D3 — Estatística

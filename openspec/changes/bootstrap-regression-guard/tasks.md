@@ -2,7 +2,7 @@
 
 ## 1. Fundações
 
-- [ ] 1.1 Criar `src/evalsentinel/{datasets,targets,evaluators,runner,store,compare,report,cli}`, `targets/`, `datasets/`, `reports/` e `docs/learn/`; verificar com `git status`
+- [ ] 1.1 Criar `src/regressionguard/{datasets,targets,evaluators,runner,store,compare,report,cli}`, `targets/`, `datasets/`, `reports/` e `docs/learn/`; verificar com `git status`
 - [ ] 1.2 Confirmar e fixar versões (Pydantic v2, Typer, DuckDB, Jinja2, numpy, scipy, jsonschema, sqlglot, httpx, pytest, Ruff) em `pyproject.toml` com o entry point `ai-eval`; verificar que `ai-eval --help` funciona após `pip install -e .`
 - [ ] 1.3 Escrever `docs/learn/00-visao-geral.md` e `01-porque-avaliar-llms-e-diferente.md`; verificar que o diagrama corresponde aos módulos
 
@@ -50,4 +50,5 @@
 ## Workflow follow-up
 
 - Adaptadores para o GroundVault e o QueryShield quando existirem.
-- Arquivar antes de `add-output-arbitration`.
+- Publicar uma tag de versão (por exemplo `v0.1.0`) para o PromptOps fixar a dependência.
+- Arquivar a change após revisão.
