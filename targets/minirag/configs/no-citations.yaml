@@ -1,0 +1,14 @@
+target: minirag
+version: no-citations
+provider: mock
+params:
+  prompt_version: p1
+  top_k: 5
+  citations: false  # regressao: o modelo deixa de citar fontes
+  extra_queries: []
+  corpus: targets/minirag/faq.json
+  live:
+    model: TODO-confirmar-modelo
+    price_input_per_1k: null
+    price_output_per_1k: null
+    api_key_env: REGRESSIONGUARD_API_KEY

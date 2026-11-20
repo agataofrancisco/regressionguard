@@ -1,0 +1,16 @@
+[
+  {"id": "faq-001", "topic": "planos residenciais", "text": "O plano Fibra 300 tem 300 Mbps simétricos e custa 25 euros por mês. O plano Fibra 1000 tem 1 Gbps simétrico e custa 40 euros por mês."},
+  {"id": "faq-002", "topic": "instalação", "text": "A instalação é gratuita para contratos de 12 meses. A visita técnica é agendada em dias úteis entre as 9h e as 18h."},
+  {"id": "faq-003", "topic": "fidelização", "text": "Os contratos têm fidelização de 12 ou 24 meses. Cancelar antes do fim da fidelização implica uma penalização mensal restante."},
+  {"id": "faq-004", "topic": "router", "text": "O router FibraLuz Box está incluído em todos os planos. Em caso de avaria nos primeiros 30 dias, o router é substituído gratuitamente."},
+  {"id": "faq-005", "topic": "faturação", "text": "A fatura é emitida no primeiro dia útil de cada mês. O pagamento pode ser feito por débito direto ou por referência Multibanco."},
+  {"id": "faq-006", "topic": "apoio técnico", "text": "O apoio técnico está disponível todos os dias das 8h às 23h pelo número 800 100 200. As chamadas para o apoio técnico não têm custo a partir do fixo."},
+  {"id": "faq-007", "topic": "mudança de morada", "text": "Para mudar de morada é preciso avisar com 15 dias de antecedência. A nova ligação tem uma taxa de 20 euros."},
+  {"id": "faq-008", "topic": "velocidade", "text": "A velocidade medida pode ser inferior à contratada por causa do Wi-Fi. O cliente pode medir a velocidade no portal com um teste de velocidade."},
+  {"id": "faq-009", "topic": "wifi", "text": "Para melhorar o sinal, coloque o router numa divisão central da casa. O canal Wi-Fi pode ser alterado no painel de administração do router."},
+  {"id": "faq-010", "topic": "portabilidade", "text": "Pode trazer o número fixo de outro operador. O processo de portabilidade demora até 5 dias úteis."},
+  {"id": "faq-011", "topic": "encomendas de equipamento", "text": "O estado de uma encomenda de equipamento pode ser consultado com o número PED seguido dos dígitos. As encomendas de equipamento são entregues em 3 dias úteis."},
+  {"id": "faq-012", "topic": "reembolsos", "text": "Os pedidos de reembolso de equipamento são analisados em 10 dias úteis. O reembolso é feito para a conta bancária associada ao contrato."},
+  {"id": "faq-013", "topic": "lojas", "text": "As lojas físicas abrem de segunda a sábado das 10h às 20h. Ao domingo as lojas físicas estão fechadas."},
+  {"id": "faq-014", "topic": "garantia", "text": "O equipamento tem garantia de 24 meses contra defeitos de fabrico. A garantia não cobre danos causados por quedas ou líquidos."}
+]

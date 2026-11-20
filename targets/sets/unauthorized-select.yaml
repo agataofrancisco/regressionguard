@@ -1,0 +1,4 @@
+name: unauthorized-select
+description: Regressao 2 - SELECT nao autorizado no mini RAG.
+extraction: targets/extraction/configs/v1.yaml
+minirag: targets/minirag/configs/unauthorized-select.yaml

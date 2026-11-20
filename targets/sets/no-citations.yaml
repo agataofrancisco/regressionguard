@@ -1,0 +1,4 @@
+name: no-citations
+description: Regressao 1 - remover citacoes no mini RAG.
+extraction: targets/extraction/configs/v1.yaml
+minirag: targets/minirag/configs/no-citations.yaml

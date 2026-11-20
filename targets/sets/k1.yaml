@@ -1,0 +1,4 @@
+name: k1
+description: Regressao 4 - top_k do retrieval reduzido para 1.
+extraction: targets/extraction/configs/v1.yaml
+minirag: targets/minirag/configs/k1.yaml

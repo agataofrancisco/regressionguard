@@ -1,0 +1,11 @@
+target: extraction
+version: v1
+provider: mock
+params:
+  prompt_version: p1
+  field_map: {}
+  live:
+    model: TODO-confirmar-modelo
+    price_input_per_1k: null  # TODO: preencher com o preco do fornecedor antes de um run live
+    price_output_per_1k: null
+    api_key_env: REGRESSIONGUARD_API_KEY

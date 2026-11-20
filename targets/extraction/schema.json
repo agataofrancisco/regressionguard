@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Encomenda extraida de uma mensagem de cliente",
+  "type": "object",
+  "required": ["order_id", "customer_tier", "items", "total", "refund_requested"],
+  "additionalProperties": false,
+  "properties": {
+    "order_id": {"type": ["string", "null"], "pattern": "^PED-[0-9]{4,6}$"},
+    "customer_tier": {"enum": ["bronze", "prata", "ouro", "platina", null]},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "qty"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "qty": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "total": {"type": ["number", "null"], "minimum": 0},
+    "refund_requested": {"type": "boolean"}
+  }
+}

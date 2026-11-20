@@ -1,0 +1,14 @@
+target: minirag
+version: k1
+provider: mock
+params:
+  prompt_version: p1
+  top_k: 1  # regressao: retrieval reduzido de 5 para 1
+  citations: true
+  extra_queries: []
+  corpus: targets/minirag/faq.json
+  live:
+    model: TODO-confirmar-modelo
+    price_input_per_1k: null
+    price_output_per_1k: null
+    api_key_env: REGRESSIONGUARD_API_KEY

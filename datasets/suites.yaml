@@ -1,0 +1,16 @@
+# Suites: conjuntos de datasets corridos por `ai-eval run --suite <nome>`.
+# `severity` filtra os casos (null = todos). A suite smoke e a que corre em cada PR.
+
+suites:
+  full:
+    description: Todos os casos golden dos dois mini-alvos.
+    datasets:
+      - datasets/extraction/golden.jsonl
+      - datasets/minirag/golden.jsonl
+    severity: null
+  smoke:
+    description: Casos criticos dos dois mini-alvos (corre em cada pull request).
+    datasets:
+      - datasets/extraction/golden.jsonl
+      - datasets/minirag/golden.jsonl
+    severity: critical

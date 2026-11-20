@@ -1,0 +1,4 @@
+name: v1
+description: Baseline (configuracoes v1 dos dois alvos).
+extraction: targets/extraction/configs/v1.yaml
+minirag: targets/minirag/configs/v1.yaml

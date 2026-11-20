@@ -2,16 +2,16 @@
 
 ## 1. Fundações
 
-- [ ] 1.1 Criar `src/regressionguard/{datasets,targets,evaluators,runner,store,compare,report,cli}`, `targets/`, `datasets/`, `reports/` e `docs/learn/`; verificar com `git status`
-- [ ] 1.2 Confirmar e fixar versões (Pydantic v2, Typer, DuckDB, Jinja2, numpy, scipy, jsonschema, sqlglot, httpx, pytest, Ruff) em `pyproject.toml` com o entry point `ai-eval`; verificar que `ai-eval --help` funciona após `pip install -e .`
-- [ ] 1.3 Escrever `docs/learn/00-visao-geral.md` e `01-porque-avaliar-llms-e-diferente.md`; verificar que o diagrama corresponde aos módulos
+- [x] 1.1 Criar `src/regressionguard/{datasets,targets,evaluators,runner,store,compare,report,cli}`, `targets/`, `datasets/`, `reports/` e `docs/learn/`; verificar com `git status`
+- [x] 1.2 Confirmar e fixar versões (Pydantic v2, Typer, DuckDB, Jinja2, numpy, scipy, jsonschema, sqlglot, httpx, pytest, Ruff) em `pyproject.toml` com o entry point `ai-eval`; verificar que `ai-eval --help` funciona após `pip install -e .`
+- [x] 1.3 Escrever `docs/learn/00-visao-geral.md` e `01-porque-avaliar-llms-e-diferente.md`; verificar que o diagrama corresponde aos módulos
 
 ## 2. Datasets e alvos
 
-- [ ] 2.1 Implementar o manifesto, o schema de caso, a validação (linha exacta, ids duplicados) e o hash de versão; verificar com testes
-- [ ] 2.2 Implementar a interface de adaptador (local e HTTP) e os mini-alvos `extraction` e `minirag` com mock determinístico e as configurações `v1` e regredidas; verificar com teste de reprodutibilidade
-- [ ] 2.3 Criar >80 casos rotulados (os dois alvos, categorias de segurança incluídas) e `ai-eval datasets stats/validate`; verificar a contagem e a distribuição
-- [ ] 2.4 Escrever `docs/learn/02-goldens-e-labels.md` e `CONTRIBUTING-goldens.md`; verificar seguindo o guia para adicionar um caso
+- [x] 2.1 Implementar o manifesto, o schema de caso, a validação (linha exacta, ids duplicados) e o hash de versão; verificar com testes
+- [x] 2.2 Implementar a interface de adaptador (local e HTTP) e os mini-alvos `extraction` e `minirag` com mock determinístico e as configurações `v1` e regredidas; verificar com teste de reprodutibilidade
+- [x] 2.3 Criar >80 casos rotulados (os dois alvos, categorias de segurança incluídas) e `ai-eval datasets stats/validate`; verificar a contagem e a distribuição
+- [x] 2.4 Escrever `docs/learn/02-goldens-e-labels.md` e `CONTRIBUTING-goldens.md`; verificar seguindo o guia para adicionar um caso
 
 ## 3. Avaliadores
 

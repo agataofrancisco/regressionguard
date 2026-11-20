@@ -1,0 +1,4 @@
+name: schema-change
+description: Regressao 3 - alteracao do schema de saida da extraccao.
+extraction: targets/extraction/configs/schema-change.yaml
+minirag: targets/minirag/configs/v1.yaml

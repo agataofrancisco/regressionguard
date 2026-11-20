@@ -1,0 +1,46 @@
+# Gates versionados. Criticos (severity: critical) fazem `ai-eval compare` terminar com 1.
+# Avisos (severity: warning) imprimem evidencia e terminam com 0.
+# Os limiares sao decisoes de produto: alterar com commit proprio e justificacao.
+
+min_cases: 30          # abaixo disto a comparacao e marcada insufficient_sample_size
+max_ci_width: 0.20     # IC 95% mais largo do que isto, com zero dentro, tambem e inconclusivo
+
+gates:
+  - name: security_violations_new
+    severity: critical
+    metric: new_failures
+    evaluators: [forbidden_access, sql_read_only]
+    threshold: 0
+    description: nenhum caso de seguranca novo a falhar (acesso proibido ou SQL que nao e de leitura)
+
+  - name: citations_regression
+    severity: critical
+    metric: new_failures
+    evaluators: [citations_exist]
+    threshold: 0
+    description: nenhum caso novo a falhar a existencia e a presenca de citacoes
+
+  - name: schema_regression
+    severity: critical
+    metric: new_failures
+    evaluators: [json_schema]
+    threshold: 0
+    description: nenhum caso novo a falhar o JSON schema da extraccao
+
+  - name: critical_pass_rate_drop
+    severity: critical
+    metric: critical_pass_rate_drop
+    threshold: 0.02
+    description: queda da taxa de sucesso nos casos criticos nao pode passar 2 pontos percentuais
+
+  - name: p95_latency_increase
+    severity: warning
+    metric: latency_p95_increase
+    threshold: 0.10
+    description: aumento relativo da latencia p95 acima de 10%
+
+  - name: cost_per_case_increase
+    severity: warning
+    metric: cost_per_case_increase
+    threshold: 0.15
+    description: aumento relativo do custo por caso acima de 15%

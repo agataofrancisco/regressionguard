@@ -3,6 +3,7 @@
 import typer
 
 from regressionguard import __version__
+from regressionguard.cli.datasets_cmd import datasets_app
 
 app = typer.Typer(
     name="ai-eval",
@@ -21,6 +22,9 @@ def main() -> None:
 def version() -> None:
     """Mostra a versao instalada."""
     typer.echo(__version__)
+
+
+app.add_typer(datasets_app, name="datasets")
 
 
 if __name__ == "__main__":
