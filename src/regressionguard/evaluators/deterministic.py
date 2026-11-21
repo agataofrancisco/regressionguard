@@ -8,6 +8,8 @@ um formato estavel (`sql:write_statement`, `citation_not_in_context:<id>`) para 
 
 from __future__ import annotations
 
+import json
+import re
 from collections import Counter
 from functools import lru_cache
 from pathlib import Path
@@ -24,6 +26,7 @@ from regressionguard.text import as_text
 DEFAULT_SCHEMA = "targets/extraction/schema.json"
 _WRITE_NODES = (exp.Insert, exp.Update, exp.Delete, exp.Drop, exp.Alter, exp.Create, exp.Merge)
 _READ_ROOTS = (exp.Select, exp.Union, exp.Intersect, exp.Except)
+_MISSING = re.compile(r"'([^']+)' is a required property")
 
 
 def _str_list(value: Any) -> list[str]:
@@ -35,8 +38,6 @@ def _str_list(value: Any) -> list[str]:
 
 @lru_cache(maxsize=32)
 def _load_schema(path: str) -> dict[str, Any]:
-    import json
-
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
@@ -60,9 +61,12 @@ def json_schema(ctx: EvalContext) -> EvalResult:
         return EvalResult(passed=True, details={"schema": schema_rel})
     first = errors[0]
     location = ".".join(str(part) for part in first.path) or "<raiz>"
+    missing = _MISSING.search(first.message) if first.validator == "required" else None
+    if missing:
+        location = missing.group(1)
     return EvalResult(
         passed=False,
-        reason=f"schema_invalid:{location}",
+        reason=f"schema_invalid:{first.validator}:{location}",
         details={"schema": schema_rel, "errors": [e.message for e in errors[:5]]},
     )
 

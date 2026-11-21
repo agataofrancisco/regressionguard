@@ -1,0 +1,33 @@
+{% extends "_base.html.j2" %}
+{% block title %}Índice de runs - RegressionGuard{% endblock %}
+{% block content %}
+<h1>Índice de runs</h1>
+<p class="muted">{{ runs | length }} runs guardadas. Gerado a partir de <code>regressionguard.duckdb</code>.</p>
+<div class="wrap"><table>
+  <tr><th>Run</th><th>Data</th><th>Commit</th><th>Suite</th><th>Conjunto</th><th>Modo</th><th>Estado</th><th>Tag</th><th>Sucesso</th><th>Críticos</th><th>Custo</th></tr>
+  {% for r in runs %}
+  <tr>
+    <td><a href="html/{{ r.run_id }}.html"><code>{{ r.run_id }}</code></a></td>
+    <td>{{ r.created_at }}</td>
+    <td><code>{{ r.commit }}</code></td>
+    <td>{{ r.suite }}</td>
+    <td>{{ r.config_set }}</td>
+    <td>{{ r.mode }}</td>
+    <td>{{ r.status }}</td>
+    <td>{{ r.tag or "" }}</td>
+    <td>{{ r.pass_rate | pct }}</td>
+    <td>{{ r.critical_pass_rate | pct }}</td>
+    <td>{{ r.cost_usd | num(" USD") }}</td>
+  </tr>
+  {% endfor %}
+</table></div>
+
+<h2>Comparações</h2>
+{% if comparisons %}
+<ul>
+  {% for c in comparisons %}<li><a href="{{ c.href }}">{{ c.label }}</a></li>{% endfor %}
+</ul>
+{% else %}
+<p class="muted">Ainda não há comparações geradas (<code>ai-eval compare --html</code>).</p>
+{% endif %}
+{% endblock %}

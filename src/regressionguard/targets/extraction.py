@@ -93,7 +93,7 @@ class ExtractionTarget(Target):
             data: dict[str, Any] | None = rule_extract(text)
             cost = 0.0
             error = None
-            latency = 2.0 + 0.05 * len(text)  # latencia sintetica e determinista no mock
+            latency = None  # calculada abaixo a partir da saida (latencia sintetica)
         else:
             try:
                 result = self._llm.complete(
@@ -110,15 +110,23 @@ class ExtractionTarget(Target):
             error = None if data is not None else "invalid_json_output"
             latency = result.latency_ms
         mapped = apply_field_map(data, self._field_map) if data is not None else None
+        text_out = (
+            json.dumps(mapped, ensure_ascii=False, sort_keys=True) if mapped is not None else ""
+        )
+        if latency is None:
+            latency = synthetic_latency_ms(text, text_out)
         return TargetOutput(
-            text=json.dumps(mapped, ensure_ascii=False, sort_keys=True)
-            if mapped is not None
-            else "",
+            text=text_out,
             data=mapped,
             cost_usd=cost,
             latency_ms=latency,
             error=error,
         )
+
+
+def synthetic_latency_ms(question: str, answer: str) -> float:
+    """Latencia SINTETICA do mock: funcao deterministica do tamanho de entrada e de saida."""
+    return round(2.0 + 0.05 * len(question) + 0.02 * len(answer), 4)
 
 
 def _ms(started: float) -> float:

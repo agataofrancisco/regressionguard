@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from regressionguard.targets.base import ConfigError, Target, TargetConfig, TargetOutput
+from regressionguard.targets.extraction import synthetic_latency_ms
 from regressionguard.targets.live import ChatClient
 from regressionguard.text import as_text, tokens
 
@@ -149,12 +150,12 @@ class MiniRagTarget(Target):
                 text=REFUSAL_TEXT,
                 abstained=True,
                 retrieved_ids=retrieved_ids,
-                latency_ms=2.0 + 0.05 * len(question),
+                latency_ms=synthetic_latency_ms(question, REFUSAL_TEXT),
             )
 
         if self._llm is None:
             text, citations, abstained = self._mock_answer(question, retrieved)
-            cost, latency, error = 0.0, 2.0 + 0.05 * len(question), None
+            cost, latency, error = 0.0, synthetic_latency_ms(question, text), None
         else:
             context = (
                 "\n".join(f"[{chunk.id}] {chunk.text}" for chunk in retrieved) or "(sem contexto)"

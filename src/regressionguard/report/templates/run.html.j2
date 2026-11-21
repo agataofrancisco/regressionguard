@@ -1,0 +1,91 @@
+{% extends "_base.html.j2" %}
+{% block title %}Run {{ run.run_id }} - RegressionGuard{% endblock %}
+{% block content %}
+<h1>Run {{ run.run_id }}</h1>
+<p class="muted">
+  suite <code>{{ run.suite }}</code> · conjunto <code>{{ run.config_set }}</code> ·
+  modo <code>{{ run.mode }}</code> · commit <code>{{ run.commit }}</code> · {{ run.created_at }}
+  {% if run.tag %} · tag <code>{{ run.tag }}</code>{% endif %}
+</p>
+
+{% if run.mode == "mock" %}
+<p class="banner">provider: mock. As saídas são determinísticas (sem variação entre repetições), a latência é sintética
+e o custo é zero. Estes números não medem um modelo real.</p>
+{% endif %}
+{% if run.status != "complete" %}
+<p class="banner">Run incompleta: {{ run.incomplete_reason }}. Não é usada para gates.</p>
+{% endif %}
+
+<h2>Resumo</h2>
+<div class="grid">
+  <div class="card"><div class="label">Casos</div><div class="value">{{ run.summary.total_cases }}</div></div>
+  <div class="card"><div class="label">Taxa de sucesso</div><div class="value">{{ run.summary.pass_rate | pct }}</div></div>
+  <div class="card"><div class="label">Casos críticos</div><div class="value">{{ run.summary.critical_pass_rate | pct }}</div></div>
+  <div class="card"><div class="label">Latência p50 / p95</div>
+    <div class="value">{{ run.summary.latency_p50_ms | num(" ms") }} / {{ run.summary.latency_p95_ms | num(" ms") }}</div></div>
+  <div class="card"><div class="label">Custo total</div><div class="value">{{ run.summary.cost_usd | num(" USD") }}</div></div>
+  <div class="card"><div class="label">Custo por caso</div><div class="value">{{ run.summary.cost_per_case_usd | num(" USD") }}</div></div>
+  <div class="card"><div class="label">Abstenção</div><div class="value">{{ run.summary.abstention_rate | pct }}</div></div>
+  <div class="card"><div class="label">Erros</div><div class="value">{{ run.summary.error_rate | pct }}</div></div>
+  <div class="card"><div class="label">Falhas de segurança</div><div class="value">{{ run.summary.security_failures }}</div></div>
+  <div class="card"><div class="label">Casos instáveis (flaky)</div><div class="value">{{ run.summary.flaky_cases }}</div></div>
+</div>
+
+<h2>Segmentos</h2>
+<div class="wrap"><table>
+  <tr><th>Categoria</th><th>Taxa de sucesso</th></tr>
+  {% for name, rate in run.summary.pass_rate_by_category.items() %}
+  <tr><td>{{ name }}</td><td>{{ rate | pct }}</td></tr>
+  {% endfor %}
+  <tr><th>Severidade</th><th>Taxa de sucesso</th></tr>
+  {% for name, rate in run.summary.pass_rate_by_severity.items() %}
+  <tr><td>{{ name }}</td><td>{{ rate | pct }}</td></tr>
+  {% endfor %}
+</table></div>
+
+<h2>Casos falhados ({{ failed | length }})</h2>
+{% if failed %}
+<div class="wrap"><table>
+  <tr><th>Caso</th><th>Categoria</th><th>Entrada</th><th>Esperado</th><th>Saída (1.ª repetição)</th><th>Motivos</th><th>Traço</th></tr>
+  {% for case in failed %}
+  <tr>
+    <td><code>{{ case.case_id }}</code><br><span class="muted">{{ case.severity }}</span></td>
+    <td>{{ case.category }}</td>
+    <td><pre>{{ case.input }}</pre></td>
+    <td><pre>{{ case.expected }}</pre></td>
+    <td><pre>{{ case.outputs[0].text if case.outputs else "" }}</pre></td>
+    <td>{% for ev in case.evaluators if ev.pass_rate < 1 %}<code>{{ ev.evaluator }}</code>: {{ ev.reasons | join(", ") }}<br>{% endfor %}</td>
+    <td>{{ case.trace_ids | join(", ") if case.trace_ids else "n/d" }}</td>
+  </tr>
+  {% endfor %}
+</table></div>
+{% else %}
+<p class="pass">Todos os casos passaram.</p>
+{% endif %}
+
+<h2>Avaliadores por caso</h2>
+<p class="muted">Taxa de sucesso por avaliador. Avaliadores secundários (juiz) não decidem a passagem.</p>
+<div class="wrap"><table>
+  <tr><th>Caso</th><th>Avaliador</th><th>Taxa</th><th>Tipo</th></tr>
+  {% for case in run.cases %}{% for ev in case.evaluators %}
+  <tr><td><code>{{ case.case_id }}</code></td><td>{{ ev.evaluator }}</td><td>{{ ev.pass_rate | pct }}</td>
+    <td>{{ "secundário" if ev.secondary else ("segurança" if ev.security else "primário") }}</td></tr>
+  {% endfor %}{% endfor %}
+</table></div>
+
+<h2>Configuração e datasets</h2>
+<div class="wrap"><table>
+  <tr><th>Alvo</th><th>Versão</th><th>Hash da config</th><th>Provedor</th></tr>
+  {% for t in run.targets %}
+  <tr><td>{{ t.target }}</td><td>{{ t.version }}</td><td><code>{{ t.config_hash[:16] }}</code></td><td>{{ t.provider }}</td></tr>
+  {% endfor %}
+</table></div>
+<div class="wrap"><table>
+  <tr><th>Dataset</th><th>Versão</th><th>Hash</th></tr>
+  {% for d in run.datasets %}
+  <tr><td>{{ d.name }} ({{ d.path }})</td><td>{{ d.version }}</td><td><code>{{ d.content_hash[:16] }}</code></td></tr>
+  {% endfor %}
+</table></div>
+<p class="muted">repetições {{ run.repeats }} · seed {{ run.seed }} · fonte da latência: {{ run.latency_source }}
+{% if run.max_usd is not none %} · orçamento {{ run.max_usd }} USD{% endif %}</p>
+{% endblock %}

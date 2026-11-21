@@ -15,23 +15,23 @@
 
 ## 3. Avaliadores
 
-- [ ] 3.1 Implementar os avaliadores determinísticos (schema, ferramenta, acesso proibido, citações, `sql_read_only` com sqlglot); verificar com testes positivos e negativos
-- [ ] 3.2 Implementar os avaliadores semânticos (exact match normalizado, F1, similaridade com limiar) com normalização declarada; verificar com testes de exemplos calculados à mão
-- [ ] 3.3 Implementar o juiz LLM opcional com rubrica versionada e a calibração (kappa); verificar com teste que o juiz não altera gates críticos
-- [ ] 3.4 Escrever `docs/learn/03-avaliadores-deterministicos.md`, `04-avaliadores-semanticos.md` e `05-llm-as-judge-e-calibracao.md`; verificar os exemplos com testes
+- [x] 3.1 Implementar os avaliadores determinísticos (schema, ferramenta, acesso proibido, citações, `sql_read_only` com sqlglot); verificar com testes positivos e negativos
+- [x] 3.2 Implementar os avaliadores semânticos (exact match normalizado, F1, similaridade com limiar) com normalização declarada; verificar com testes de exemplos calculados à mão
+- [x] 3.3 Implementar o juiz LLM opcional com rubrica versionada e a calibração (kappa); verificar com teste que o juiz não altera gates críticos
+- [x] 3.4 Escrever `docs/learn/03-avaliadores-deterministicos.md`, `04-avaliadores-semanticos.md` e `05-llm-as-judge-e-calibracao.md`; verificar os exemplos com testes
 
 ## 4. Runs e armazenamento
 
-- [ ] 4.1 Implementar o store DuckDB (runs, case_results, evaluator_results) e o JSON de auditoria; verificar com teste de escrita e leitura
-- [ ] 4.2 Implementar `ai-eval run` (mock/live, `--max-usd` obrigatório em live, paragem por tecto, `--repeats`, seed, flaky); verificar com testes de live sem tecto, tecto atingido e caso flaky
-- [ ] 4.3 Escrever `docs/learn/06-aleatoriedade-e-repeticoes.md`; verificar com uma run real em mock
+- [x] 4.1 Implementar o store DuckDB (runs, case_results, evaluator_results) e o JSON de auditoria; verificar com teste de escrita e leitura
+- [x] 4.2 Implementar `ai-eval run` (mock/live, `--max-usd` obrigatório em live, paragem por tecto, `--repeats`, seed, flaky); verificar com testes de live sem tecto, tecto atingido e caso flaky
+- [x] 4.3 Escrever `docs/learn/06-aleatoriedade-e-repeticoes.md`; verificar com uma run real em mock
 
 ## 5. Comparação e gates
 
-- [ ] 5.1 Implementar a comparação emparelhada com bootstrap IC 95%, McNemar e `insufficient_sample_size`; verificar com testes sobre dados sintéticos com diferença conhecida
-- [ ] 5.2 Implementar `gates.yaml`, a avaliação crítico/aviso, os exit codes, a secção `regressions` e a recomendação de rollback sem acção; verificar com testes de gate crítico (exit 1) e aviso (exit 0)
-- [ ] 5.3 Executar o laboratório das 4 regressões e confirmar a detecção de cada uma, registando os falsos positivos; verificar com `pytest -m lab`
-- [ ] 5.4 Escrever `docs/learn/07-comparacao-emparelhada-bootstrap-mcnemar.md` e `09-laboratorio-de-regressoes.md` com os resultados obtidos; verificar que os números vêm das runs
+- [x] 5.1 Implementar a comparação emparelhada com bootstrap IC 95%, McNemar e `insufficient_sample_size`; verificar com testes sobre dados sintéticos com diferença conhecida
+- [x] 5.2 Implementar `gates.yaml`, a avaliação crítico/aviso, os exit codes, a secção `regressions` e a recomendação de rollback sem acção; verificar com testes de gate crítico (exit 1) e aviso (exit 0)
+- [x] 5.3 Executar o laboratório das 4 regressões e confirmar a detecção de cada uma, registando os falsos positivos; verificar com `pytest -m lab`
+- [x] 5.4 Escrever `docs/learn/07-comparacao-emparelhada-bootstrap-mcnemar.md` e `09-laboratorio-de-regressoes.md` com os resultados obtidos; verificar que os números vêm das runs
 
 ## 6. Relatórios, CI e painel
 

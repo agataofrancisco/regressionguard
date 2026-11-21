@@ -1,0 +1,84 @@
+{% extends "_base.html.j2" %}
+{% block title %}Comparação {{ report.baseline_id }} vs {{ report.candidate_id }} - RegressionGuard{% endblock %}
+{% block content %}
+<h1>Comparação: candidato <code>{{ report.candidate_id }}</code> contra baseline <code>{{ report.baseline_id }}</code></h1>
+<p class="muted">{{ report.method }} · modo <code>{{ report.mode }}</code> · {{ report.n_cases }} casos emparelhados</p>
+
+{% for w in report.warnings %}<p class="banner">{{ w }}</p>{% endfor %}
+
+<h2>Resultado</h2>
+<p>
+  {% if report.critical_failed %}
+    <span class="fail">Gate crítico falhado (exit code {{ report.exit_code }}).</span>
+  {% else %}
+    <span class="pass">Sem gates críticos falhados (exit code {{ report.exit_code }}).</span>
+  {% endif %}
+</p>
+{% if report.recommendation.action == "rollback" %}
+<p class="banner">Recomendação: <strong>rollback</strong> para o baseline <code>{{ report.recommendation.rollback_to.run_id }}</code>
+({{ report.recommendation.rollback_to.config_set }}). <strong>Nenhum rollback foi executado.</strong></p>
+{% endif %}
+
+<h2>Métricas lado a lado</h2>
+<div class="wrap"><table>
+  <tr><th>Métrica</th><th>Baseline</th><th>Candidato</th><th>Diferença</th></tr>
+  <tr><td>Taxa de sucesso</td><td>{{ report.pass_rate_baseline | pct }}</td><td>{{ report.pass_rate_candidate | pct }}</td><td>{{ report.pass_rate_diff | pct }}</td></tr>
+  <tr><td>Casos críticos</td><td>{{ report.baseline_summary.critical_pass_rate | pct }}</td><td>{{ report.candidate_summary.critical_pass_rate | pct }}</td><td></td></tr>
+  <tr><td>Latência p95</td><td>{{ report.baseline_summary.latency_p95_ms | num(" ms") }}</td><td>{{ report.candidate_summary.latency_p95_ms | num(" ms") }}</td><td></td></tr>
+  <tr><td>Custo por caso</td><td>{{ report.baseline_summary.cost_per_case_usd | num(" USD") }}</td><td>{{ report.candidate_summary.cost_per_case_usd | num(" USD") }}</td><td></td></tr>
+  <tr><td>Abstenção</td><td>{{ report.baseline_summary.abstention_rate | pct }}</td><td>{{ report.candidate_summary.abstention_rate | pct }}</td><td></td></tr>
+</table></div>
+
+<h2>Estatística</h2>
+<div class="grid">
+  <div class="card"><div class="label">Diferença média emparelhada</div><div class="value">{{ report.paired_mean_diff | num }}</div></div>
+  <div class="card"><div class="label">IC 95% (bootstrap)</div><div class="value">[{{ report.ci_low | num }}, {{ report.ci_high | num }}]</div></div>
+  <div class="card"><div class="label">McNemar (p exacto)</div><div class="value">{{ report.mcnemar_p_value | num }}</div>
+    <div class="muted">só baseline {{ report.mcnemar_only_baseline }} · só candidato {{ report.mcnemar_only_candidate }}</div></div>
+  <div class="card"><div class="label">Amostra</div>
+    <div class="value">{{ "insuficiente" if report.insufficient_sample_size else "conclusiva" }}</div>
+    {% for r in report.insufficient_reasons %}<div class="muted">{{ r }}</div>{% endfor %}</div>
+</div>
+
+<h2>Gates</h2>
+<div class="wrap"><table>
+  <tr><th>Gate</th><th>Severidade</th><th>Valor</th><th>Limiar</th><th>Resultado</th><th>Evidência</th></tr>
+  {% for g in report.gates %}
+  <tr>
+    <td><code>{{ g.name }}</code><br><span class="muted">{{ g.description }}</span></td>
+    <td>{{ g.severity }}</td>
+    <td>{{ g.value | num }}</td>
+    <td>{{ g.threshold }}</td>
+    <td>{% if g.passed is none %}<span class="na">não avaliável</span>{% elif g.passed %}<span class="pass">passou</span>{% else %}<span class="fail">falhou</span>{% endif %}</td>
+    <td>{% for e in g.evidence %}{{ e }}<br>{% endfor %}</td>
+  </tr>
+  {% endfor %}
+</table></div>
+
+<h2>Regressões ({{ report.regressions | length }})</h2>
+<p class="muted">Casos que passavam no baseline e falham no candidato, com as duas saídas lado a lado.</p>
+{% if report.regressions %}
+<div class="wrap"><table>
+  <tr><th>Caso</th><th>Entrada</th><th>Saída do baseline</th><th>Saída do candidato</th><th>Avaliadores que falharam</th></tr>
+  {% for r in report.regressions %}
+  <tr>
+    <td><code>{{ r.case_id }}</code><br><span class="muted">{{ r.severity }} · {{ r.category }}</span></td>
+    <td><pre>{{ r.input }}</pre></td>
+    <td><pre>{{ r.baseline_output }}</pre></td>
+    <td><pre>{{ r.candidate_output }}</pre></td>
+    <td>{% for name in r.failed_evaluators %}<code>{{ name }}</code><br>{% endfor %}{{ r.reasons | join(", ") }}</td>
+  </tr>
+  {% endfor %}
+</table></div>
+{% else %}
+<p class="pass">Nenhum caso regrediu.</p>
+{% endif %}
+
+<h2>Segmentos</h2>
+<div class="wrap"><table>
+  <tr><th>Categoria</th><th>n</th><th>Baseline</th><th>Candidato</th><th>Diferença</th></tr>
+  {% for name, row in report.by_category.items() %}
+  <tr><td>{{ name }}</td><td>{{ row.n }}</td><td>{{ row.baseline | pct }}</td><td>{{ row.candidate | pct }}</td><td>{{ row.diff | pct }}</td></tr>
+  {% endfor %}
+</table></div>
+{% endblock %}
