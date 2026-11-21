@@ -35,16 +35,16 @@
 
 ## 6. Relatórios, CI e painel
 
-- [ ] 6.1 Implementar `ai-eval report --html/--json` com template Jinja2 autónomo; verificar que abre sem servidor
-- [ ] 6.2 Criar `.github/workflows/eval.yml` (mock no PR com baseline artifact, live manual com `--max-usd`); verificar a validade e simular localmente os comandos
-- [ ] 6.3 Criar o índice de runs e o painel opcional (Streamlit sobre DuckDB) com diffs e casos regredidos; verificar no browser
-- [ ] 6.4 Documentar as integrações opcionais (promptfoo, Langfuse, Phoenix) e o que cada uma faz melhor; verificar que o funcionamento base não depende delas
-- [ ] 6.5 Escrever `docs/learn/08-gates-e-ci.md`; verificar com um PR de exemplo pass/fail descrito com output real
+- [x] 6.1 Implementar `ai-eval report --html/--json` com template Jinja2 autónomo; verificar que abre sem servidor
+- [x] 6.2 Criar `.github/workflows/eval.yml` (mock no PR com baseline artifact, live manual com `--max-usd`); verificar a validade e simular localmente os comandos
+- [x] 6.3 Criar o índice de runs e o painel opcional (Streamlit sobre DuckDB) com diffs e casos regredidos; verificar no browser
+- [x] 6.4 Documentar as integrações opcionais (promptfoo, Langfuse, Phoenix) e o que cada uma faz melhor; verificar que o funcionamento base não depende delas
+- [x] 6.5 Escrever `docs/learn/08-gates-e-ci.md`; verificar com um PR de exemplo pass/fail descrito com output real
 
 ## 7. Entrega
 
-- [ ] 7.1 Escrever `README.md`, `docs/architecture.md`, `docs/decisions.md` e `docs/case-study.md` (a regressão real do laboratório); verificar que os comandos correm
-- [ ] 7.2 Escrever `docs/learn/10-perguntas-de-entrevista.md` (≥25); verificar a consistência com o código
+- [x] 7.1 Escrever `README.md`, `docs/architecture.md`, `docs/decisions.md` e `docs/case-study.md` (a regressão real do laboratório); verificar que os comandos correm
+- [x] 7.2 Escrever `docs/learn/10-perguntas-de-entrevista.md` (≥25); verificar a consistência com o código
 - [ ] 7.3 Revisão independente (segredos no CI, custo live, honestidade estatística); verificar que os achados estão resolvidos ou documentados
 
 ## Workflow follow-up
