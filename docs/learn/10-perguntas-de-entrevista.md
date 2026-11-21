@@ -61,9 +61,10 @@ Variação entre repetições da mesma versão. Um caso é `flaky` se `0 < pass_
 (`test_repeats_produce_pass_rate_and_flaky_flag`). Em mock é sempre zero, e isso é esperado.
 
 **14. Como controlas o custo de uma run live?**
-`--max-usd` é obrigatório; sem ele a CLI recusa antes da primeira chamada. Antes de cada chamada estima-se o custo
-pelo maior observado; ao atingir o teto a run fica `incomplete: budget_reached` e não serve para gates
-(`test_budget_stops_run_and_marks_incomplete`). Limitação: a primeira chamada não tem estimativa.
+`--max-usd` é obrigatório; sem ele a CLI recusa antes da primeira chamada. Antes de cada chamada soma-se ao gasto
+o limite superior (pior caso) dessa chamada; se a soma passa o teto, a chamada não é feita e a run fica
+`incomplete: budget_reached`, sem servir para gates (`test_first_call_that_would_exceed_cap_is_never_made`).
+O limite exige `max_tokens` na configuração live e um alvo que o declare, senão a run nem começa.
 
 **15. Porque é que a seed é `S + r` e não a mesma em todas as repetições?**
 Com a mesma seed as repetições seriam iguais e não medem nada. `S + r` dá repetições diferentes e reproduzíveis:
@@ -150,6 +151,6 @@ Observar (Langfuse, Phoenix) mostra o que aconteceu em produção. Avaliar decid
 passa num conjunto fixo. São complementares; as integrações estão apenas documentadas em `integrations.md`.
 
 **35. Quais são as limitações conhecidas deste harness?**
-Mock não mede variância; o orçamento estima pelo maior custo observado; não há juiz ligado à CLI; o painel
+Mock não mede variância; o orçamento é um limite a priori com pior caso (um token com pelo menos 3 caracteres); não há juiz ligado à CLI; o painel
 bloqueia o DuckDB durante escritas concorrentes; não há migrações de esquema; o workflow não foi executado no
 GitHub. Todas estão em `architecture.md` ou `decisions.md`.

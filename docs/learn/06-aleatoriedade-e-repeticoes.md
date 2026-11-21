@@ -75,9 +75,11 @@ Teste que cobre a regra do exemplo do spec (passa em 3 de 5 repetições, `pass_
   antes do terceiro).
 - Live sem teto: recusa com exit 2. Teste: `tests/test_cli.py::test_live_without_max_usd_is_refused_before_any_call`.
 - Erro do alvo: vira `error_rate` e a repetição falha, sem derrubar a run. Teste: `test_target_exception_becomes_error_output`.
-- Limitação conhecida: a estimativa do orçamento usa o maior custo observado. A primeira chamada não tem
-  estimativa, por isso o orçamento pode ser ultrapassado no máximo por uma chamada. Ver "Decisões novas" no
-  relatório de execução.
+- Orçamento: o teto é um limite a priori. Antes de cada chamada soma-se ao gasto até ali o limite superior do
+  custo dessa chamada (`max_cost_per_call`, pior caso com `max_tokens`). Se a soma ultrapassa `--max-usd`, a
+  chamada nunca é feita. Teste de ponta a ponta com transporte falso: `test_live_run_with_fake_transport_never_exceeds_cap`.
+  Limitação que resta: o pior caso assume que um token tem pelo menos 3 caracteres. Para um tokenizador que
+  quebre essa regra, o custo real pode passar o limite; nesse caso a run para com `provider_cost_above_bound`.
 
 ## Perguntas de entrevista
 

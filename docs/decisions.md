@@ -63,8 +63,15 @@ autenticação. Streamlit como painel opcional, só leitura.
 - **N6 — Comparação recusada em modos diferentes** (`mode_mismatch`).
 - **N7 — Latência sintética do mock** depende do tamanho da entrada e da saída, e é sempre rotulada
   `synthetic-mock`. Sem isto o gate de latência nunca dispararia em mock.
-- **N8 — Orçamento com estimativa pelo maior custo observado.** A primeira chamada não tem estimativa e pode
-  ultrapassar o teto em uma chamada. Documentado como limitação.
+- **N8 — Orçamento a priori (corrigido na revisão independente).** Antes de cada chamada a run soma o limite
+  superior do custo dessa chamada (`Target.max_cost_per_call`) ao gasto até ali. Se `gasto + limite > --max-usd`,
+  a chamada não é feita e a run fica `incomplete: budget_reached`. O limite é calculado com o pior caso:
+  `ceil(caracteres/3)` tokens de entrada (pressuposto: um token tem pelo menos 3 caracteres) ao preço de entrada,
+  mais `max_tokens` ao preço de saída. `max_tokens` é obrigatório em `params.live` e é enviado no pedido.
+  O alvo mock declara 0.0; o HTTP declara `params.max_call_usd`; um alvo sem limite recusa a run antes de qualquer
+  chamada (`ConfigError`). Se o provedor cobrar acima do limite, a run para com
+  `provider_cost_above_bound`, em vez de esconder o excesso. Testes: `tests/test_runner.py` (primeira chamada que
+  excederia o teto nunca é feita; chamada grande a meio não é feita; gasto nunca passa o teto com transporte falso).
 - **N9 — Ordem de avaliadores e casos preservada** na base de dados (coluna `seq`), para que a run recarregada
   seja igual à original.
 - **N10 — Verificação de esquema DuckDB** (`StoreSchemaError`) em vez de falha tardia numa base antiga.

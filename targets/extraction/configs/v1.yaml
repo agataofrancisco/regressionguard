@@ -9,3 +9,4 @@ params:
     price_input_per_1k: null  # TODO: preencher com o preco do fornecedor antes de um run live
     price_output_per_1k: null
     api_key_env: REGRESSIONGUARD_API_KEY
+    max_tokens: 512  # obrigatorio em live: limite de saida que fixa o custo maximo de cada chamada

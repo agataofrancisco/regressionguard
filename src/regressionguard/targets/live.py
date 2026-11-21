@@ -7,6 +7,7 @@ na configuracao do alvo: um preco errado da um custo errado.
 
 from __future__ import annotations
 
+import math
 import os
 import time
 from dataclasses import dataclass
@@ -36,6 +37,7 @@ class ChatClient:
         api_key: str,
         price_input_per_1k: float,
         price_output_per_1k: float,
+        max_tokens: int,
         base_url: str = DEFAULT_BASE_URL,
         timeout_s: float = 60.0,
         http: httpx.Client | None = None,
@@ -44,6 +46,7 @@ class ChatClient:
         self._api_key = api_key
         self._price_in = price_input_per_1k
         self._price_out = price_output_per_1k
+        self._max_tokens = max_tokens
         self._base_url = base_url.rstrip("/")
         self._http = http or httpx.Client(timeout=timeout_s)
 
@@ -63,19 +66,45 @@ class ChatClient:
                 "params.live.price_input_per_1k e price_output_per_1k sao obrigatorios "
                 "(sem precos o custo nao e medido e o --max-usd nao tem significado)"
             )
+        max_tokens = live.get("max_tokens")
+        if not isinstance(max_tokens, int) or isinstance(max_tokens, bool) or max_tokens < 1:
+            raise ConfigError(
+                "params.live.max_tokens e obrigatorio (inteiro >= 1): sem limite de saida "
+                "nao ha limite de custo a priori"
+            )
         return cls(
             model=model,
             api_key=api_key,
             price_input_per_1k=float(prices[0]),
             price_output_per_1k=float(prices[1]),
+            max_tokens=max_tokens,
             base_url=str(
                 live.get("base_url", os.environ.get("REGRESSIONGUARD_BASE_URL", DEFAULT_BASE_URL))
             ),
             http=http,
         )
 
+    def worst_case_cost(self, messages: list[dict[str, str]]) -> float:
+        """Limite superior do custo de UMA chamada, calculado ANTES de a fazer.
+
+        Pressuposto conservador: um token ocupa pelo menos 3 caracteres, por isso
+        ceil(chars/3) e um limite superior dos tokens de entrada em texto PT/EN.
+        A saida e limitada por `max_tokens`, que e enviado no pedido.
+        """
+        chars = sum(len(str(message.get("content", ""))) for message in messages)
+        prompt_tokens_bound = math.ceil(chars / 3)
+        return (
+            prompt_tokens_bound / 1000.0 * self._price_in
+            + self._max_tokens / 1000.0 * self._price_out
+        )
+
     def complete(self, messages: list[dict[str, str]], *, seed: int | None = None) -> ChatResult:
-        payload: dict[str, Any] = {"model": self.model, "messages": messages, "temperature": 0}
+        payload: dict[str, Any] = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": 0,
+            "max_tokens": self._max_tokens,
+        }
         if seed is not None:
             payload["seed"] = seed
         started = time.perf_counter()

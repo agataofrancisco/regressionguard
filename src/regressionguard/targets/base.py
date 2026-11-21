@@ -80,6 +80,14 @@ class Target(ABC):
     def provider_label(self) -> str:
         """Etiqueta do provedor para relatorios: 'mock', 'live:<modelo>' ou 'http'."""
 
+    def max_cost_per_call(self, case_input: Any) -> float | None:
+        """Limite superior do custo (USD) de UMA chamada, calculado ANTES de a fazer.
+
+        None = desconhecido. Em `--mode live` um alvo sem limite a priori nao corre (ConfigError,
+        sem chamadas feitas). Por omissao o alvo nao declara limite.
+        """
+        return None
+
     @abstractmethod
     def run(self, case_input: Any, *, seed: int | None = None) -> TargetOutput:
         """Executa o alvo sobre o input de um caso."""

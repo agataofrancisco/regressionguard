@@ -63,6 +63,6 @@ os únicos pontos de rede, e só são usados quando configurados.
 ## Limitações conhecidas
 
 - Não há migração de esquema DuckDB; uma base antiga é detetada (`StoreSchemaError`) e deve ser recriada.
-- O orçamento live estima o custo pelo maior custo observado; a primeira chamada não tem estimativa.
+- O orçamento é a priori (pior caso por chamada, com `max_tokens`). Assume que um token tem pelo menos 3 caracteres; um tokenizador que viole isto para a run com `provider_cost_above_bound`.
 - O painel abre a base de dados por pedido; com uma run a ser escrita ao mesmo tempo pode haver bloqueio.
 - O juiz LLM existe como interface e como avaliador, mas não há implementação de juiz ligada à CLI.

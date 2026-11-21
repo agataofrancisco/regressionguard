@@ -86,6 +86,15 @@ class ExtractionTarget(Target):
     def provider_label(self) -> str:
         return f"live:{self._llm.model}" if self._llm else "mock"
 
+    def max_cost_per_call(self, case_input: Any) -> float | None:
+        if self._llm is None:
+            return 0.0
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": as_text(case_input)},
+        ]
+        return self._llm.worst_case_cost(messages)
+
     def run(self, case_input: Any, *, seed: int | None = None) -> TargetOutput:
         text = as_text(case_input)
         started = time.perf_counter()

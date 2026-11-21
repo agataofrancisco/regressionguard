@@ -185,6 +185,7 @@ def test_live_client_computes_cost_from_usage():
         assert request.headers["authorization"] == "Bearer chave-falsa"
         body = json.loads(request.content)
         assert body["temperature"] == 0 and body["seed"] == 3
+        assert body["max_tokens"] == 256
         return httpx.Response(
             200,
             json={
@@ -198,6 +199,7 @@ def test_live_client_computes_cost_from_usage():
         api_key="chave-falsa",
         price_input_per_1k=0.001,
         price_output_per_1k=0.002,
+        max_tokens=256,
         http=httpx.Client(transport=httpx.MockTransport(handler)),
     )
     result = client.complete([{"role": "user", "content": "x"}], seed=3)
@@ -219,3 +221,67 @@ def test_load_target_config_errors(tmp_path):
         load_target_config(bad)
     with pytest.raises(ConfigError):
         load_target_config(tmp_path / "nao-existe.yaml")
+
+
+def test_worst_case_cost_formula_is_conservative():
+    client = ChatClient(
+        model="m",
+        api_key="k",
+        price_input_per_1k=0.5,
+        price_output_per_1k=2.0,
+        max_tokens=1000,
+    )
+    # 6 caracteres -> ceil(6/3) = 2 tokens de entrada; saida limitada a 1000 tokens
+    cost = client.worst_case_cost([{"role": "user", "content": "abcdef"}])
+    assert cost == pytest.approx(2 / 1000 * 0.5 + 1000 / 1000 * 2.0)
+
+
+def test_live_params_require_max_tokens(monkeypatch):
+    monkeypatch.setenv("REGRESSIONGUARD_TEST_KEY", "fake")
+    base = {
+        "model": "m",
+        "api_key_env": "REGRESSIONGUARD_TEST_KEY",
+        "price_input_per_1k": 0.1,
+        "price_output_per_1k": 0.2,
+    }
+    with pytest.raises(ConfigError, match="max_tokens"):
+        ChatClient.from_params(base)
+    with pytest.raises(ConfigError, match="max_tokens"):
+        ChatClient.from_params({**base, "max_tokens": 0})
+    assert ChatClient.from_params({**base, "max_tokens": 64}).model == "m"
+
+
+def test_http_target_cost_bound_comes_only_from_params():
+    no_bound = HttpTarget(
+        TargetConfig(target="x", version="v", provider="http", params={"url": "https://e.test"})
+    )
+    assert no_bound.max_cost_per_call("a") is None
+    bound = HttpTarget(
+        TargetConfig(
+            target="x",
+            version="v",
+            provider="http",
+            params={"url": "https://e.test", "max_call_usd": 0.02},
+        )
+    )
+    assert bound.max_cost_per_call("a") == pytest.approx(0.02)
+
+
+def test_mock_targets_declare_zero_cost_bound():
+    target = ExtractionTarget(_cfg("extraction"))
+    assert target.max_cost_per_call("PED-1") == 0.0
+    corpus = load_corpus(ROOT / "targets/minirag/faq.json")
+    assert MiniRagTarget(_cfg("minirag"), corpus).max_cost_per_call("x") == 0.0
+
+
+def test_live_targets_bound_uses_worst_case_of_real_prompt():
+    corpus = load_corpus(ROOT / "targets/minirag/faq.json")
+    live = ChatClient(
+        model="m", api_key="k", price_input_per_1k=0.01, price_output_per_1k=0.02, max_tokens=512
+    )
+    extraction = ExtractionTarget(_cfg("extraction"), llm=live)
+    bound = extraction.max_cost_per_call("PED-1\n1x Caneca total 2,00")
+    assert bound > 512 / 1000 * 0.02  # inclui pelo menos o limite de saida
+    rag = MiniRagTarget(_cfg("minirag"), corpus, llm=live)
+    # o limite do RAG usa a FAQ inteira como contexto possivel: e maior do que o da extraccao
+    assert rag.max_cost_per_call("Quanto custa?") > bound

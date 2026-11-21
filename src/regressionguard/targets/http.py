@@ -60,6 +60,17 @@ class HttpTarget(Target):
     def provider_label(self) -> str:
         return "http"
 
+    def max_cost_per_call(self, case_input: Any) -> float | None:
+        """Limite declarado em `params.max_call_usd` (o servico externo e que fixa o custo)."""
+        value = self.config.params.get("max_call_usd")
+        if value is None:
+            return None
+        try:
+            bound = float(value)
+        except (TypeError, ValueError):
+            return None
+        return bound if bound >= 0 else None
+
     def _field(self, body: Any, key: str, default: str) -> Any:
         return dig(body, self._field_map.get(key, default))
 

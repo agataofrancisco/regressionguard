@@ -53,7 +53,7 @@ Saídas:
 
 `--mode live` exige `--max-usd`. Sem o tecto a CLI recusa antes de qualquer chamada. A chave é lida de
 uma variável de ambiente (`REGRESSIONGUARD_API_KEY` por omissão), nunca de ficheiros do repositório.
-Os preços (`params.live.price_input_per_1k` e `price_output_per_1k`) são obrigatórios na configuração do
+O teto é a priori: antes de cada chamada soma-se o limite superior do custo (pior caso, com `params.live.max_tokens`). Uma chamada que excederia o teto não é feita. Os preços (`params.live.price_input_per_1k` e `price_output_per_1k`) e `max_tokens` são obrigatórios na configuração do
 alvo: sem eles o custo não é medido. Os valores em `targets/*/configs/*.yaml` estão a `null` com
 `TODO`, por isso um run live falha até serem preenchidos.
 

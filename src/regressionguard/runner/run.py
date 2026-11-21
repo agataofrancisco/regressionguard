@@ -3,8 +3,10 @@
 Regras principais (ver specs/eval-runs e docs/learn/06):
 - um caso passa numa repeticao se nenhum avaliador PRIMARIO falhar e o alvo nao devolver erro;
 - avaliadores secundarios (juiz LLM) so correm se houver juiz, e nunca decidem a passagem;
-- `--mode live` tem orcamento: antes de cada chamada estima-se o custo pelo maior custo observado;
-  se a chamada nao cabe no orcamento, a run para e fica `incomplete: budget_reached`.
+- `--max-usd` e um limite a priori: antes de CADA chamada soma-se o limite superior do custo
+  da chamada (`Target.max_cost_per_call`) ao gasto ate ali; se ultrapassar o teto, a chamada
+  nao e feita e a run fica `incomplete: budget_reached`. Um alvo sem limite declarado recusa
+  a run antes de qualquer chamada.
 """
 
 from __future__ import annotations
@@ -38,6 +40,7 @@ from regressionguard.targets.base import ConfigError, Target, TargetOutput, load
 from regressionguard.targets.factory import build_target
 
 BUDGET_REACHED = "budget_reached"
+BUDGET_BOUND_VIOLATED = "provider_cost_above_bound"
 
 
 @dataclass(frozen=True)
@@ -199,42 +202,55 @@ def run_suite(opts: RunOptions) -> RunRecord:
             )
 
     severity = opts.suite.severity
-    spent = 0.0
-    max_call_cost = 0.0
-    status, reason = "complete", None
-    case_records: list[CaseRecord] = []
-
+    # plano completo ANTES de qualquer chamada: limites a priori por caso (sem chamadas ao alvo)
+    plan: list[tuple[Case, Target, float]] = []
     for dataset in datasets:
         target = targets[dataset.manifest.target]
         for case in dataset.cases:
             if severity is not None and case.severity != severity:
                 continue
-            outputs: list[TargetOutput] = []
-            repeat_evals: list[list[EvalRecord]] = []
-            repeat_passed: list[bool] = []
-            for repeat in range(opts.repeats):
-                if opts.max_usd is not None and spent + max_call_cost > opts.max_usd:
-                    status, reason = "incomplete", BUDGET_REACHED
-                    break
-                output = _safe_run(target, case.input, opts.seed + repeat)
-                spent += output.cost_usd
-                max_call_cost = max(max_call_cost, output.cost_usd)
-                records, passed = evaluate_output(case, output, opts.root, opts.judge)
-                for record in records:
-                    record.repeat = repeat
-                outputs.append(output)
-                repeat_evals.append(records)
-                repeat_passed.append(passed)
-            if outputs:
-                case_records.append(
-                    _aggregate_case(
-                        case, dataset.manifest.target, outputs, repeat_evals, repeat_passed
+            bound = 0.0
+            if opts.max_usd is not None:
+                declared = target.max_cost_per_call(case.input)
+                if declared is None:
+                    raise ConfigError(
+                        f"o alvo '{target.name}' nao declara custo maximo por chamada: "
+                        "um run com --max-usd exige um limite a priori (nenhuma chamada foi feita)"
                     )
-                )
-            if status == "incomplete":
-                break
+                bound = declared
+            plan.append((case, target, bound))
+
+    spent = 0.0
+    status, reason = "complete", None
+    case_records: list[CaseRecord] = []
+
+    for case, target, bound in plan:
         if status == "incomplete":
             break
+        outputs: list[TargetOutput] = []
+        repeat_evals: list[list[EvalRecord]] = []
+        repeat_passed: list[bool] = []
+        for repeat in range(opts.repeats):
+            if opts.max_usd is not None and spent + bound > opts.max_usd:
+                status, reason = "incomplete", BUDGET_REACHED
+                break
+            output = _safe_run(target, case.input, opts.seed + repeat)
+            spent += output.cost_usd
+            if opts.max_usd is not None and output.cost_usd > bound + 1e-12:
+                # a estimativa a priori nao foi respeitada pelo provedor: parar e dizer porquê
+                status, reason = "incomplete", BUDGET_BOUND_VIOLATED
+            records, passed = evaluate_output(case, output, opts.root, opts.judge)
+            for record in records:
+                record.repeat = repeat
+            outputs.append(output)
+            repeat_evals.append(records)
+            repeat_passed.append(passed)
+            if status == "incomplete":
+                break
+        if outputs:
+            case_records.append(
+                _aggregate_case(case, target.name, outputs, repeat_evals, repeat_passed)
+            )
 
     now = opts.now()
     return RunRecord(

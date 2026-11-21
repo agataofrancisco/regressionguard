@@ -53,7 +53,10 @@ def main() -> None:
 
     ids = [row["run_id"] for row in runs]
     left, right = st.columns(2)
-    baseline_id = left.selectbox("Baseline", ids, index=0)
+    tagged = [i for i, row in enumerate(runs) if row.get("tag") == "baseline"]
+    # baseline por omissao: a run mais recente com a tag `baseline`; sem tag, a mais antiga
+    default_baseline = tagged[-1] if tagged else 0
+    baseline_id = left.selectbox("Baseline", ids, index=default_baseline)
     candidate_id = right.selectbox("Candidato", ids, index=len(ids) - 1)
     if baseline_id == candidate_id:
         st.info("Escolha duas runs diferentes para comparar.")
