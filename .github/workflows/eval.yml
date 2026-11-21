@@ -1,0 +1,149 @@
+# Avaliacao de regressoes.
+# - pull_request: suite smoke em modo MOCK (sem segredos), comparada com o baseline do ramo main.
+#   PRs de forks nao recebem segredos: este job nao usa nenhum.
+# - push para main: recria o baseline (artefacto `baseline`) com a mesma suite smoke.
+# - workflow_dispatch: modo LIVE manual, com tecto de custo obrigatorio (`max_usd`).
+#   Requer o segredo REGRESSIONGUARD_API_KEY configurado pelo dono do repositorio.
+
+name: eval
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      max_usd:
+        description: "Orcamento maximo em USD para a run live (obrigatorio)"
+        required: true
+        default: "1.00"
+      config_set:
+        description: "Conjunto de configuracoes (targets/sets)"
+        required: true
+        default: "v1"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: eval-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mock-smoke:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias fixadas
+        run: python -m pip install -e ".[dev]"
+
+      - name: Lint e testes
+        run: |
+          set -o pipefail
+          ruff check .
+          ruff format --check .
+          pytest -q
+
+      - name: Correr suite smoke (mock)
+        run: |
+          set -o pipefail
+          ai-eval run --suite smoke --config-set v1 --mode mock --tag "${GITHUB_SHA}"
+
+      - name: Descarregar baseline do main (apenas em pull requests)
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          RUN_ID=$(gh run list --workflow eval.yml --branch main --status success --limit 1 \
+            --json databaseId --jq '.[0].databaseId')
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "Sem baseline no main ainda: comparacao ignorada nesta run." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "HAS_BASELINE=false" >> "$GITHUB_ENV"
+          else
+            gh run download "$RUN_ID" -n baseline -D reports/baseline
+            echo "HAS_BASELINE=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Comparar com o baseline e publicar resumo
+        if: github.event_name == 'pull_request' && env.HAS_BASELINE == 'true'
+        run: |
+          set -o pipefail
+          BASE_FILE=$(ls reports/baseline/*.json | head -n 1)
+          ai-eval import "$BASE_FILE"
+          BASE_ID=$(python -c "import json,sys; print(json.load(open(sys.argv[1]))['run_id'])" "$BASE_FILE")
+          CAND_ID=$(ls -t reports/runs/*.json | head -n 1 | xargs -n1 basename | sed 's/\.json$//')
+          {
+            echo "## RegressionGuard: smoke contra main"
+            echo '```'
+            ai-eval compare --baseline "$BASE_ID" --candidate "$CAND_ID" --html
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Guardar relatorios
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-${{ github.run_id }}
+          path: reports/
+          if-no-files-found: ignore
+
+      - name: Guardar baseline (apenas no main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline
+          path: reports/runs/
+          retention-days: 90
+
+  live-manual:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: live-eval
+    env:
+      REGRESSIONGUARD_API_KEY: ${{ secrets.REGRESSIONGUARD_API_KEY }}
+      MAX_USD: ${{ inputs.max_usd }}
+      CONFIG_SET: ${{ inputs.config_set }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias fixadas
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verificar segredo e tecto de custo
+        run: |
+          if [ -z "$REGRESSIONGUARD_API_KEY" ]; then
+            echo "Falta o segredo REGRESSIONGUARD_API_KEY." >&2
+            exit 1
+          fi
+          if [ -z "$MAX_USD" ]; then
+            echo "max_usd e obrigatorio." >&2
+            exit 1
+          fi
+
+      - name: Correr suite completa em LIVE com tecto de custo
+        run: |
+          set -o pipefail
+          ai-eval run --suite full --config-set "$CONFIG_SET" --mode live \
+            --max-usd "$MAX_USD" --repeats 3 --tag "manual-${GITHUB_SHA}"
+
+      - name: Guardar relatorios live
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-reports-${{ github.run_id }}
+          path: reports/
+          if-no-files-found: ignore

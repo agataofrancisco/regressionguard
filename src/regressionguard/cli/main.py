@@ -33,6 +33,8 @@ app = typer.Typer(
     help="RegressionGuard: avalia sistemas com LLMs e detecta regressoes.",
     no_args_is_help=True,
     add_completion=False,
+    # ajuda em texto simples: o render Rich quebra em pipes do Git Bash no Windows
+    rich_markup_mode=None,
 )
 app.add_typer(datasets_app, name="datasets")
 
