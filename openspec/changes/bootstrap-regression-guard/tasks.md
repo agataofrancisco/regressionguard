@@ -45,7 +45,7 @@
 
 - [x] 7.1 Escrever `README.md`, `docs/architecture.md`, `docs/decisions.md` e `docs/case-study.md` (a regressão real do laboratório); verificar que os comandos correm
 - [x] 7.2 Escrever `docs/learn/10-perguntas-de-entrevista.md` (≥25); verificar a consistência com o código
-- [ ] 7.3 Revisão independente (segredos no CI, custo live, honestidade estatística); verificar que os achados estão resolvidos ou documentados
+- [x] 7.3 Revisão independente (segredos no CI, custo live, honestidade estatística); verificar que os achados estão resolvidos ou documentados
 
 ## Workflow follow-up
 
